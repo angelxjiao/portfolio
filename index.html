@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crunch Time — The way money should move</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ===== RESET ===== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'DM Sans', sans-serif; background: #FFFFFF; color: #000; -webkit-font-smoothing: antialiased; }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    img, video { display: block; max-width: 100%; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+    /* ===== CSS CUSTOM PROPERTIES ===== */
+    :root {
+      --brand-green: #00E013;
+      --black: #000000;
+      --white: #FFFFFF;
+      --grid-gap: 16px;
+
+      /* Type scale — mobile */
+      --headline-size-1: 2.5em;
+      --headline-size-2: 2em;
+      --headline-size-3: 1.75em;
+      --headline-size-4: 1.5em;
+      --body-copy-size: 1em;
+      --cta-size: 0.875em;
+      --disclaimer-size: 0.625em;
+      --disclaimer-body-size: 0.75em;
+
+      --mask-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='336' height='728'%3E%3Crect width='336' height='728' rx='44' fill='black'/%3E%3C/svg%3E");
+    }
+
+    @media (min-width: 760px) {
+      :root {
+        --headline-size-1: 3.25em;
+        --headline-size-2: 2em;
+        --headline-size-3: 1.5em;
+        --headline-size-4: 1.25em;
+        --body-copy-size: 1.125em;
+        --cta-size: 0.875em;
+        --disclaimer-size: 0.625em;
+        --disclaimer-body-size: 0.75em;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      :root {
+        --grid-gap: 20px;
+        --headline-size-1: 3.5em;
+        --headline-size-2: 2.5em;
+        --headline-size-3: 1.75em;
+        --headline-size-4: 1.5em;
+        --body-copy-size: 1.125em;
+        --cta-size: 0.875em;
+        --disclaimer-size: 0.75em;
+        --disclaimer-body-size: 0.875em;
+      }
+    }
+
+    /* ===== PAGE WRAPPER / TYPOGRAPHY BASE ===== */
+    .page-wrapper {
+      font-size: max(0.86rem, min(0.029rem + 4.15vw, 2rem));
+      background-color: var(--bg-color, #00E013);
+      color: var(--text-color, #fff);
+      transition: background-color 0.6s ease-in-out, color 0.6s ease-in-out;
+    }
+    @media (min-width: 760px) {
+      .page-wrapper { font-size: max(1rem, min(2.105vw, 1.347rem)); }
+    }
+    @media (min-width: 1024px) {
+      .page-wrapper { font-size: max(0.711rem, min(1.111vw, 1rem)); }
+    }
+
+    /* ===== TYPOGRAPHY ===== */
+    h1 { font-size: var(--headline-size-1); letter-spacing: -0.03em; font-weight: 400; line-height: 0.95; }
+    h2 { font-size: var(--headline-size-2); letter-spacing: -0.03em; font-weight: 400; line-height: 1.1; }
+    h3 { font-size: var(--headline-size-3); letter-spacing: -0.03em; font-weight: 400; line-height: 1.1; }
+    h4 { font-size: var(--headline-size-4); letter-spacing: -0.03em; font-weight: 400; line-height: 1.1; }
+    p  { font-size: var(--body-copy-size);  letter-spacing: -0.03em; font-weight: 400; line-height: 1.4; }
+
+    /* ===== FULL-BLEED GRID ===== */
+    .full-bleed-grid {
+      display: grid;
+      grid-column-gap: 16px;
+      grid-row-gap: 0;
+      grid-template-columns: 0 [contentStart] repeat(4, 1fr) [contentEnd] 0;
+      grid-auto-rows: min-content;
+      width: 100%;
+    }
+    @media (min-width: 760px) {
+      .full-bleed-grid {
+        grid-template-columns: 0 [contentStart] repeat(8, 1fr) [contentEnd] 0;
+      }
+    }
+    @media (min-width: 1024px) {
+      .full-bleed-grid {
+        grid-column-gap: 20px;
+        grid-template-columns: 0 [contentStart] repeat(12, 1fr) [contentEnd] 0;
+      }
+    }
+    @media (min-width: 1480px) {
+      .full-bleed-grid {
+        grid-template-columns: 1fr [contentStart] repeat(12, 101.667px) [contentEnd] 1fr;
+      }
+    }
+
+    /* ===== NAV ===== */
+    .nav-wrap {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      pointer-events: none;
+      margin-bottom: -100%;
+      padding: 16px 0;
+    }
+    @media (min-width: 1024px) {
+      .nav-wrap { padding: 20px 0; }
+    }
+    .nav-wrap .nav-inner {
+      opacity: 0;
+      transform: translateY(-100%);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+    .nav-wrap.visible .nav-inner {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .nav-header {
+      grid-column: contentStart / contentEnd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: auto;
+      height: calc(34.4286px + 0.803571vw);
+    }
+    @media (min-width: 1440px) {
+      .nav-header {
+        grid-column: 1 / -1;
+        padding: 0 20px;
+      }
+    }
+    .nav-left { display: flex; align-items: center; gap: 12px; height: 100%; }
+    .nav-right { display: flex; align-items: center; gap: 4px; height: 100%; }
+
+    .nav-logo {
+      width: calc(34.4286px + 0.803571vw);
+      height: calc(34.4286px + 0.803571vw);
+      background: var(--brand-green);
+      border-radius: 22%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .nav-logo svg { width: 55%; height: 55%; }
+
+    .nav-btn {
+      font-size: var(--cta-size);
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: 0;
+      border-radius: 999px;
+      padding: 0 calc(12.2857px + 0.535714vw);
+      height: 100%;
+      display: none;
+      align-items: center;
+      transition: all 0.3s ease-in-out;
+    }
+    @media (min-width: 760px) {
+      .nav-btn { display: inline-flex; }
+      .nav-btn--signup { display: inline-flex; }
+    }
+    .nav-btn--signup {
+      background: var(--white); color: var(--black);
+      font-weight: 500;
+      border: 1px solid transparent;
+      display: none;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .nav-btn--signup svg {
+      margin-left: 8px;
+      width: max(10px, min(1em, 12px));
+      height: auto;
+    }
+    .nav-btn--login { background: var(--black); color: var(--white); outline: 0.5px solid rgba(255,255,255,0.5); }
+    @media (min-width: 1024px) {
+      .nav-btn--login { letter-spacing: -0.02em; }
+    }
+
+    .hamburger {
+      background: var(--black);
+      outline: 1px solid rgba(255,255,255,0.5);
+      border-radius: 50%;
+      height: 100%;
+      aspect-ratio: 1;
+      pointer-events: auto;
+      cursor: pointer;
+      position: relative;
+    }
+    .hamburger::before,
+    .hamburger::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 30%;
+      right: 30%;
+      border-bottom: 1px solid var(--white);
+      transition: transform 0.45s cubic-bezier(0, 0.45, 0.25, 1);
+    }
+    .hamburger::before { transform: translateY(-3px); }
+    .hamburger::after { transform: translateY(3px); }
+    @media (min-width: 760px) {
+      .hamburger { outline-width: 0.5px; }
+    }
+    @media (min-width: 1024px) {
+      .hamburger::before, .hamburger::after { border-bottom-width: 2px; }
+    }
+
+    /* ===== NAV OVERLAY ===== */
+    .nav-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(50px);
+      -webkit-backdrop-filter: blur(50px);
+      color: var(--white);
+      z-index: 1001;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 50ms linear 55ms, visibility 0s linear 105ms;
+      overflow-y: auto;
+      padding: 80px 24px 40px;
+    }
+    .nav-overlay.open {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+      transition: opacity 50ms linear;
+    }
+    .nav-overlay-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: transparent;
+      outline: 0.5px solid rgba(255,255,255,0.3);
+      border-radius: 999px;
+      width: calc(34.4286px + 0.803571vw);
+      height: calc(34.4286px + 0.803571vw);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      color: var(--white);
+    }
+    .nav-overlay .nav-primary-grid {
+      opacity: 0; transform: translateY(60px);
+      transition: opacity 50ms linear 5ms, transform 50ms cubic-bezier(0, .5, .2, 1) 55ms;
+    }
+    .nav-overlay .nav-secondary {
+      opacity: 0; transform: translateY(60px);
+      transition: opacity 50ms linear 10ms, transform 50ms cubic-bezier(0, .5, .2, 1) 60ms;
+    }
+    .nav-overlay .nav-tertiary {
+      opacity: 0; transform: translateY(60px);
+      transition: opacity 50ms linear 15ms, transform 50ms cubic-bezier(0, .5, .2, 1) 65ms;
+    }
+    .nav-overlay.open .nav-primary-grid,
+    .nav-overlay.open .nav-secondary,
+    .nav-overlay.open .nav-tertiary {
+      opacity: 1; transform: translateY(0);
+    }
+    .nav-primary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: calc(5.714px + 0.714vw);
+      margin-bottom: 40px;
+    }
+    @media (min-width: 1024px) {
+      .nav-primary-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .nav-card {
+      background: rgba(255,255,255,0.06);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .nav-card-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-card-title { font-size: var(--body-copy-size); font-weight: 400; letter-spacing: -0.03em; }
+    .nav-secondary { margin-bottom: 40px; display: flex; flex-direction: column; gap: 16px; }
+    .nav-secondary a { font-size: var(--body-copy-size); color: rgba(255,255,255,0.6); letter-spacing: -0.03em; }
+    .nav-tertiary { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+    .nav-tertiary a { font-size: var(--disclaimer-size); color: rgba(255,255,255,0.4); }
+
+    /* ===== HERO ===== */
+    .hero {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      min-height: 100vh;
+      padding: 120px 0 70px;
+      position: relative;
+      background-color: var(--brand-green);
+    }
+    @media (min-width: 1024px) {
+      .hero {
+        height: calc(100vh - 80px);
+        padding: 80px 0 0;
+        background-color: transparent;
+      }
+    }
+
+    /* Black bg sits behind — revealed as mask shrinks on desktop */
+    .hero-bg {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background-color: var(--black);
+      z-index: 0;
+      pointer-events: none;
+      opacity: var(--background-opacity, 1);
+      margin-top: -160px;
+      padding: 0 0 100px;
+      transition: opacity .1s linear, background-color .6s ease-in-out;
+    }
+    @media (min-width: 1024px) {
+      .hero-bg { position: absolute; }
+    }
+
+    /* Green layer — on desktop, masked to phone shape via --mask-scale.
+       Starts at maxScale (fills viewport), shrinks to 1 (phone) on scroll.
+       On mobile, no mask — green bg is on the .hero itself. */
+    .hero-masked-content {
+      position: absolute;
+      inset: 0;
+      background-color: var(--brand-green);
+      z-index: 1;
+      display: none; /* hidden on mobile — .hero bg handles green */
+    }
+    @media (min-width: 1024px) {
+      .hero-masked-content {
+        display: block;
+        -webkit-mask-image: var(--mask-svg);
+        mask-image: var(--mask-svg);
+        -webkit-mask-size: calc(var(--mask-scale, 1) * 337px) calc(var(--mask-scale, 1) * 724px);
+        mask-size: calc(var(--mask-scale, 1) * 337px) calc(var(--mask-scale, 1) * 724px);
+        -webkit-mask-position: 50%;
+        mask-position: 50%;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-source-type: alpha;
+        mask-mode: alpha;
+        will-change: mask-size, -webkit-mask-size;
+      }
+    }
+
+    /* Hero content — opacity controlled by --content-opacity for scroll exit */
+    .hero-content {
+      grid-column: contentStart / contentEnd;
+      display: grid;
+      grid-template-columns: subgrid;
+      position: relative;
+      z-index: 2;
+      align-items: center;
+      opacity: var(--content-opacity, 1);
+      transition: opacity 0.1s linear;
+    }
+
+    /* Intro animation — content starts hidden, slides up when .intro-complete fires */
+    .hero-content > * {
+      opacity: 0;
+      transform: translateY(40%);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+    .hero.intro-complete .hero-content > * {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    /* Stagger: headline first, media second, desc third */
+    .hero-content .hero-headline { transition-delay: 0s; }
+    .hero-content .hero-media { transition-delay: 0.15s; }
+    .hero-content .hero-desc { transition-delay: 0.3s; }
+
+    .hero-headline {
+      grid-column: 1 / -1;
+      margin-bottom: 32px;
+    }
+    @media (min-width: 760px) {
+      .hero-headline { max-width: 500px; margin-left: auto; margin-right: auto; }
+    }
+    .hero-media {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .hero-desc {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    @media (min-width: 760px) {
+      .hero-desc { max-width: 500px; margin-left: auto; margin-right: auto; }
+    }
+    @media (min-width: 1024px) {
+      .hero-headline {
+        grid-area: 1 / 1 / auto / span 4;
+        margin-bottom: 0;
+        align-self: center;
+        max-width: unset;
+        margin-left: unset;
+        margin-right: unset;
+      }
+      .hero-media {
+        grid-column: 5 / span 4;
+        margin-bottom: 0;
+        align-items: flex-start;
+        padding-top: 10vh;
+        overflow: visible;
+        transform: translateY(10%);
+      }
+      .hero-desc {
+        grid-area: 1 / -4 / auto / span 3;
+        align-self: center;
+        max-width: unset;
+        margin-left: unset;
+        margin-right: unset;
+      }
+    }
+
+    /* Phone frame — visible on mobile as a distinct element.
+       On desktop, hidden because the mask IS the phone shape. */
+    .hero-phone {
+      width: 100%;
+      max-width: 284px;
+      aspect-ratio: 337 / 724;
+      background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.15) 100%);
+      border-radius: 14.6% / 7%;
+      overflow: hidden;
+      filter: drop-shadow(0 4px 40px rgba(0,0,0,0.1));
+    }
+    @media (min-width: 760px) {
+      .hero-phone { max-width: 437px; }
+    }
+    @media (min-width: 1024px) {
+      .hero-phone {
+        max-width: none;
+        width: auto;
+        height: 110vh;
+        background: transparent;
+        filter: none;
+        border-radius: 0;
+      }
+    }
+    /* Hero phone mock UI */
+    .hero-phone-ui {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: inherit;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      color: #000;
+      font-size: 13px;
+      overflow: hidden;
+    }
+    .phone-ui-statusbar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 8px 4px 4px;
+    }
+    .phone-ui-row {
+      display: flex;
+      gap: 8px;
+    }
+    .phone-ui-chip {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 10px;
+      font-size: 13px;
+    }
+    .phone-ui-card {
+      background: rgba(0,0,0,0.03);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .phone-ui-card-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .phone-ui-bar {
+      height: 4px;
+      background: rgba(0,0,0,0.08);
+      border-radius: 2px;
+      margin-top: 6px;
+    }
+    .phone-ui-bar-fill {
+      height: 100%;
+      width: 35%;
+      background: var(--brand-green);
+      border-radius: 2px;
+    }
+    @media (min-width: 1024px) {
+      .hero-phone-ui {
+        border-radius: 44px;
+        padding: 28px 24px;
+        gap: 14px;
+        font-size: 15px;
+        box-shadow: 0 8px 60px rgba(0,0,0,0.08);
+      }
+    }
+
+    /* Hero headline uses its own font-size scale (Cash Sans Wide equiv) */
+    .hero h1 {
+      color: var(--black);
+      font-size: max(2rem, min(1.51172rem + 2.08333vw, 2.5rem));
+      font-weight: 600;
+      line-height: 1;
+      letter-spacing: -0.01em;
+    }
+    @media (min-width: 1024px) {
+      .hero h1 {
+        font-size: max(2.5rem, min(1.10294rem + 2.94118vw, 3.75rem));
+      }
+    }
+    .hero-desc p { color: rgba(0,0,0,0.6); margin-bottom: 0; }
+
+    /* ===== PILL BUTTONS ===== */
+    .pill-btn {
+      border-radius: 100px;
+      padding: 1em 1.42em;
+      font-size: var(--cta-size);
+      font-weight: 400;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      width: fit-content;
+      transition: all 0.3s;
+    }
+    .pill-btn--dark-filled { background: var(--black); color: var(--white); }
+    .pill-btn--light-filled { background: var(--white); color: var(--black); }
+    .pill-btn--dark-outlined {
+      background: transparent; color: var(--black); border: 1px solid var(--black);
+      padding: 1.142em 1.42em;
+      transition: all .3s;
+    }
+    .pill-btn--dark-outlined:hover { background-color: var(--black); color: var(--white); }
+    .pill-btn--light-outlined {
+      background: transparent; color: var(--white); border: 1px solid var(--white);
+      padding: 1.142em 1.42em;
+      transition: all .3s;
+    }
+    .pill-btn--light-outlined:hover { background-color: var(--white); color: var(--black); }
+
+    /* ===== THREE-COLUMN GRID SECTIONS ===== */
+    .tcg-section {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      padding-top: 24px;
+      user-select: none;
+    }
+    @media (min-width: 1024px) {
+      .tcg-section {
+        padding: 0;
+        height: 100vh;
+        min-height: 100vh;
+        justify-content: center;
+        align-items: center;
+        gap: 24px;
+      }
+    }
+    .tcg-content {
+      grid-column: contentStart / contentEnd;
+      display: grid;
+      grid-template-columns: subgrid;
+      grid-template-rows: minmax(50vh, auto) min-content min-content;
+      grid-auto-flow: row;
+    }
+    @media (min-width: 760px) {
+      .tcg-content {
+        text-wrap: balance;
+        grid-template-rows: minmax(60vh, auto) min-content min-content;
+      }
+    }
+    @media (min-width: 1024px) {
+      .tcg-content {
+        grid-template-rows: 1fr;
+        place-content: center;
+        align-items: center;
+        height: 100%;
+        position: relative;
+      }
+    }
+    .tcg-header {
+      width: 100%;
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: start;
+      align-items: start;
+      will-change: color;
+      transition: color .6s;
+    }
+    .tcg-header h2 {
+      font-size: var(--headline-size-3);
+      letter-spacing: -0.03em;
+      font-weight: 400;
+      line-height: 1.1;
+      margin-bottom: 1em;
+    }
+    @media (min-width: 760px) {
+      .tcg-header h2 { font-size: var(--headline-size-2); }
+    }
+    .tcg-media {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 50vh;
+      max-height: 50vh;
+      margin-bottom: max(24px, min(7vh, 54px));
+    }
+    .tcg-desc {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: start;
+      will-change: color;
+      transition: color 0.6s;
+    }
+    @media (min-width: 1024px) {
+      .tcg-header {
+        grid-area: 1 / 1 / auto / span 3;
+        margin-right: calc(-1 * var(--grid-gap));
+      }
+      .tcg-media {
+        grid-column: 5 / span 4;
+        height: 80vh;
+        max-height: 80vh;
+        margin-bottom: 0;
+      }
+      .tcg-desc {
+        grid-area: 1 / -4 / auto / span 3;
+        text-align: left;
+        margin-left: calc(-1 * var(--grid-gap));
+        margin-right: calc(-1 * var(--grid-gap));
+        margin-bottom: 0;
+      }
+    }
+
+    /* ===== PHONE PORTAL (static) ===== */
+    .phone-portal {
+      aspect-ratio: 337 / 724;
+      width: 100%;
+      max-width: 284px;
+      border-radius: 14.6% / 7%;
+      overflow: hidden;
+      filter: drop-shadow(0 4px 100px rgba(0,0,0,0.1));
+      will-change: transform;
+    }
+    @media (min-width: 1024px) {
+      .phone-portal {
+        height: 80vh;
+        width: auto;
+        max-width: none;
+      }
+    }
+    .phone-portal.increased-shadow {
+      filter: drop-shadow(0 4px 100px rgba(0,0,0,0.2));
+    }
+
+    /* Section-specific portal gradients */
+    .portal-highyield { background: linear-gradient(160deg, #00E013 0%, #00c411 50%, #008c0d 100%); }
+    .portal-whatsnew { background: linear-gradient(160deg, #6366f1 0%, #4f46e5 50%, #3730a3 100%); }
+    .portal-savings { background: linear-gradient(160deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%); }
+    .portal-p2p { background: linear-gradient(160deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%); }
+    .portal-security { background: linear-gradient(160deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%); }
+    .portal-reviews { background: linear-gradient(160deg, #ec4899 0%, #db2777 50%, #be185d 100%); }
+
+    /* ===== MASK PLACEHOLDER (desktop grid reservation) ===== */
+    @media (min-width: 1024px) {
+      .tcg-mask-placeholder {
+        grid-column: 5 / 9;
+        aspect-ratio: 0.462;
+        height: 80vh;
+      }
+    }
+
+    .tcg-desc p, .tcg-desc ul, .tcg-desc blockquote { margin-bottom: max(40px, min(2em, 54px)); }
+    .tcg-desc p { color: rgba(255,255,255,0.7); }
+    .tcg-desc blockquote {
+      font-size: var(--body-copy-size);
+      letter-spacing: -0.03em;
+      font-weight: 400;
+      line-height: 1.2;
+    }
+    .tcg-desc blockquote::before { content: "\201C"; color: inherit; display: inline; }
+    .tcg-desc blockquote::after { content: "\201D"; color: inherit; display: inline; }
+    @media (min-width: 1024px) {
+      .tcg-desc p, .tcg-desc ul, .tcg-desc blockquote { margin-bottom: max(24px, min(2em, 32px)); }
+    }
+    .tcg-desc ul li {
+      font-size: var(--body-copy-size);
+      letter-spacing: -0.03em;
+      line-height: 1.4;
+      color: rgba(255,255,255,0.7);
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    /* ===== SECTION THEMES ===== */
+    .section-green { background: var(--brand-green); color: var(--black); }
+    .section-green .tcg-desc p,
+    .section-green .tcg-desc ul li { color: rgba(0,0,0,0.6); }
+
+
+    .section-black { background: var(--black); color: var(--white); }
+    .section-white { background: var(--white); color: var(--black); }
+    .section-white .tcg-desc p,
+    .section-white .tcg-desc ul li { color: rgba(0,0,0,0.6); }
+
+
+    /* ===== CARD FAN SECTION ===== */
+    .card-fan-wrapper {
+      container: mediaContainer / size;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .card-fan-container {
+      aspect-ratio: 1;
+      user-select: none;
+      width: 100%;
+      max-width: min(70cqh, 100cqw);
+      max-height: min(70cqw, 100cqh);
+      position: relative;
+    }
+    @media (min-width: 1024px) {
+      .card-fan-container {
+        max-width: min(60cqh, 100cqw);
+        max-height: min(60cqw, 100cqh);
+      }
+    }
+    .fan-card {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform-origin: 50%;
+      max-width: 100%;
+      max-height: 100%;
+      width: 60%;
+      aspect-ratio: 1.586;
+      border-radius: 8%;
+      transition-property: transform;
+      transition-duration: 0.4s;
+      transition-timing-function: ease-in-out;
+      transform: translate(-50%, -50%) rotate(-90deg);
+    }
+    .card-fan-container.open .fan-card:nth-child(1) { transform: translate(-50%, -50%) rotate(-82.5deg); }
+    .card-fan-container.open .fan-card:nth-child(2) { transform: translate(-50%, -50%) rotate(-75deg); }
+    .card-fan-container.open .fan-card:nth-child(3) { transform: translate(-50%, -50%) rotate(-60deg); }
+    .card-fan-container.open .fan-card:nth-child(4) { transform: translate(-50%, -50%) rotate(-45deg); }
+    .card-fan-container.open .fan-card:nth-child(5) { transform: translate(-50%, -50%) rotate(-30deg); }
+    .card-fan-container.open .fan-card:nth-child(6) { transform: translate(-50%, -50%) rotate(-15deg); }
+
+    .fan-card--silver { background: linear-gradient(135deg, #c0c0c0, #e8e8e8, #a8a8a8, #d4d4d4); }
+    .fan-card--black { background: linear-gradient(135deg, #1a1a1a, #333, #111, #2a2a2a); }
+    .fan-card--pink { background: linear-gradient(135deg, #f472b6, #ec4899, #db2777, #f9a8d4); }
+    .fan-card--white { background: linear-gradient(135deg, #fff, #f0f0f0, #fff, #e8e8e8); }
+    .fan-card--purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed, #6d28d9, #a78bfa); }
+    .fan-card--green { background: linear-gradient(135deg, #00E013, #00c411, #00a00e, #34d058); }
+
+    /* ===== CARD GRID SECTION ===== */
+    .card-grid-section {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      justify-content: center;
+      align-items: start;
+      padding-top: 24px;
+      padding-bottom: 24px;
+    }
+    @media (min-width: 1024px) {
+      .card-grid-section {
+        padding: 10vh 0;
+        align-items: center;
+        height: 100%;
+        min-height: 100vh;
+      }
+    }
+    .cg-text {
+      grid-column: contentStart / contentEnd;
+      text-wrap: balance;
+      will-change: color;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: start;
+      gap: 28px;
+      width: 100%;
+      margin-bottom: 48px;
+      padding-top: 40px;
+      transition: color 0.6s;
+      display: flex;
+    }
+    @media (min-width: 1024px) {
+      .cg-text {
+        flex-direction: row;
+        align-items: end;
+        margin-bottom: max(32px, min(9vh, 84px));
+      }
+    }
+    .cg-text h2 {
+      font-size: var(--headline-size-3);
+      margin-bottom: 1em;
+    }
+    @media (min-width: 760px) {
+      .cg-text h2 {
+        font-size: var(--headline-size-2);
+        margin-bottom: 0.5em;
+      }
+    }
+    .cg-text p:last-child { margin-bottom: 0; }
+    .cg-grid {
+      grid-column: contentStart / contentEnd;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-column-gap: 16px;
+      grid-row-gap: 24px;
+    }
+    @media (min-width: 1024px) {
+      .cg-grid {
+        grid-template-columns: repeat(4, 1fr);
+        grid-column-gap: 20px;
+        grid-row-gap: 24px;
+      }
+    }
+    .promo-card {
+      border-radius: 15.9% / 13%;
+      aspect-ratio: 0.863;
+      overflow: hidden;
+      position: relative;
+      transition: transform 0.1s linear;
+    }
+    .promo-card-bg {
+      position: absolute;
+      inset: 0;
+      object-fit: cover;
+      object-position: bottom;
+      width: 100%;
+      height: 100%;
+    }
+    .card-content {
+      position: absolute;
+      top: calc(6.85714px + 2.85714vw);
+      left: calc(6.85714px + 2.85714vw);
+      right: 20%;
+      z-index: 2;
+      color: white;
+      text-wrap: balance;
+      display: flex;
+      flex-direction: column;
+      gap: calc(13.7143px + 0.714286vw);
+    }
+    @media (min-width: 1024px) {
+      .card-content { right: 40%; }
+    }
+    .card-content h4 { margin-bottom: 0; }
+    .card-content p { font-size: var(--disclaimer-size); color: rgba(255,255,255,0.8); margin-bottom: 0; }
+
+    .promo-card--1 .promo-card-bg { background: linear-gradient(160deg, #00E013 0%, #00a00e 100%); }
+    .promo-card--2 .promo-card-bg { background: linear-gradient(160deg, #1a1a2e 0%, #16213e 100%); }
+    .promo-card--3 .promo-card-bg { background: linear-gradient(160deg, #6366f1 0%, #4f46e5 100%); }
+    .promo-card--4 .promo-card-bg { background: linear-gradient(160deg, #f59e0b 0%, #d97706 100%); }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      background-color: var(--black);
+      color: var(--white);
+      padding-bottom: 40px;
+      z-index: 1;
+      will-change: color, background-color;
+      transition: all 0.6s ease-in-out;
+      position: relative;
+      height: fit-content;
+    }
+    .footer-container {
+      grid-column: contentStart / contentEnd;
+      display: grid;
+      grid-template-columns: subgrid;
+      grid-row-gap: calc(116.571px + -6.42857vw);
+    }
+    .footer-hero {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: subgrid;
+      align-content: center;
+      min-height: 100vh;
+    }
+    .footer-hero-headline {
+      grid-column: 1 / -1;
+      text-wrap: balance;
+      margin-top: 32px;
+      margin-bottom: 40px;
+    }
+    @media (min-width: 760px) {
+      .footer-hero-headline { grid-column: 1 / span 5; }
+    }
+    @media (min-width: 1024px) {
+      .footer-hero-headline { grid-column: 1 / span 4; margin-top: 0; margin-bottom: 20vh; }
+    }
+    .footer-stats {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    @media (min-width: 760px) {
+      .footer-stats { gap: 20px; }
+    }
+    @media (min-width: 1024px) {
+      .footer-stats { grid-template-columns: repeat(4, 1fr); }
+    }
+    .stat-card {
+      aspect-ratio: 1;
+      border-radius: 14.3%;
+      padding: 40px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: start;
+      overflow: hidden;
+      background: transparent;
+      border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+    }
+    .stat-card h3 {
+      font-size: var(--headline-size-1);
+      letter-spacing: -0.03em;
+      font-weight: 400;
+      line-height: 0.95;
+    }
+    @media (min-width: 1024px) {
+      .stat-card h3 { font-size: var(--headline-size-2); }
+    }
+    .stat-card p {
+      color: rgba(255,255,255,0.6);
+      font-size: var(--headline-size-3);
+      letter-spacing: -0.03em;
+      font-weight: 400;
+      line-height: 1.1;
+      text-wrap: balance;
+      width: 70%;
+    }
+    @media (min-width: 760px) {
+      .stat-card p {
+        font-size: var(--body-copy-size);
+        line-height: 1.2;
+      }
+    }
+    .stat-card--cta {
+      background: var(--brand-green);
+      color: var(--black);
+      border-color: transparent;
+    }
+    .stat-card--cta p { color: rgba(0,0,0,0.6); }
+
+    .footer-contact {
+      grid-column: 1 / -1;
+      padding: 40px 0;
+    }
+    .footer-contact p { color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+    .footer-contact a { color: var(--white); font-weight: 500; }
+
+    .footer-links {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px 24px;
+      padding: 20px 0;
+    }
+    .footer-links a {
+      font-size: var(--disclaimer-size);
+      color: rgba(255,255,255,0.4);
+      letter-spacing: -0.03em;
+    }
+
+    .footer-social {
+      grid-column: 1 / -1;
+      display: flex;
+      gap: 12px;
+      padding: 20px 0;
+    }
+    .social-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .social-icon svg { width: 14px; height: 14px; fill: var(--white); }
+
+    .footer-disclaimers {
+      grid-column: 1 / -1;
+      padding: 20px 0;
+    }
+    .footer-disclaimers small {
+      display: block;
+      font-size: var(--disclaimer-size);
+      color: rgba(255,255,255,0.3);
+      line-height: 1.5;
+      letter-spacing: -0.03em;
+      margin-bottom: calc(8.571px + 1.071vw);
+    }
+
+    /* ===== FLOATING CTA ===== */
+    .floating-cta {
+      position: fixed;
+      bottom: 0;
+      left: 5vw;
+      width: 90vw;
+      z-index: 1000;
+      pointer-events: none;
+      transform: translateY(calc(100% + 20px));
+      text-decoration: none;
+      display: block;
+    }
+    .floating-cta.show {
+      pointer-events: auto;
+      animation: ctaSlideIn 0.6s cubic-bezier(0, 0, 0.2, 1) forwards;
+    }
+    @keyframes ctaSlideIn {
+      to { transform: translateY(0); }
+    }
+    @keyframes ctaSlideOut {
+      to { transform: translateY(calc(100% + 20px)); }
+    }
+    .floating-cta-content {
+      background: var(--black);
+      color: var(--white);
+      font-size: var(--cta-size);
+      letter-spacing: -0.02em;
+      font-weight: 400;
+      line-height: 1.2;
+      padding: 15px 20px 16px 25px;
+      border-radius: 100px;
+      white-space: nowrap;
+      cursor: pointer;
+      margin-bottom: 16px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: opacity 0.2s;
+    }
+    .floating-cta-content:active { transform: scale(0.98); }
+    .floating-cta-content svg {
+      width: 13px;
+      height: 13px;
+      fill: var(--white);
+      flex-shrink: 0;
+    }
+    @media (min-width: 760px) {
+      .floating-cta { display: none; }
+    }
+
+    /* ===== COLOR-MANAGED MODE (JS transitions page bg) ===== */
+    .page-wrapper.color-managed .tcg-section,
+    .page-wrapper.color-managed .card-grid-section {
+      background: transparent;
+    }
+
+    /* ===== REVEAL ANIMATIONS ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+    /* Phone portal slide-up entrance */
+    .reveal .phone-portal {
+      opacity: 0;
+      transform: translateY(60px);
+      transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible .phone-portal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper full-bleed-grid">
+
+    <!-- ===== NAV ===== -->
+    <div class="nav-wrap" id="navWrap">
+      <div class="nav-inner nav-header">
+        <div class="nav-left">
+          <a href="#" class="nav-logo" aria-label="Crunch Time home">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13.5 3L6 14h5.5l-1 7L18 10h-5.5l1-7z" fill="#000" stroke="#000" stroke-width="1.5" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </div>
+        <div class="nav-right">
+          <button class="nav-btn nav-btn--signup">Sign up <svg width="11" height="11" viewBox="0 -4 13 13" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.823.5l4.95 4.95a.778.778 0 010 1.1l-4.95 4.95a.778.778 0 01-1.1-1.1l3.622-3.622H.778a.778.778 0 010-1.556h8.567L5.723 1.6a.778.778 0 011.1-1.1z" fill="currentColor"/></svg></button>
+          <button class="nav-btn nav-btn--login">Log in</button>
+          <button class="hamburger" id="hamburgerBtn" aria-label="Open menu"></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== NAV OVERLAY ===== -->
+    <div class="nav-overlay" id="navOverlay">
+      <button class="nav-overlay-close" id="navClose" aria-label="Close menu">&times;</button>
+      <div class="nav-primary-grid">
+        <a href="#" class="nav-card">
+          <div class="nav-card-icon" style="background:#00E013;">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2v20M2 12h20" stroke="#000" stroke-width="2.5" stroke-linecap="round"/></svg>
+          </div>
+          <span class="nav-card-title">Bank* on your terms</span>
+        </a>
+        <a href="#" class="nav-card">
+          <div class="nav-card-icon" style="background:#6366f1;">
+            <svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="5" width="18" height="14" rx="3" stroke="#fff" stroke-width="2" fill="none"/></svg>
+          </div>
+          <span class="nav-card-title">Order a Crunch Time Card</span>
+        </a>
+        <a href="#" class="nav-card">
+          <div class="nav-card-icon" style="background:#06b6d4;">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M21 12a9 9 0 1 1-9-9" stroke="#000" stroke-width="2.5" stroke-linecap="round" fill="none"/></svg>
+          </div>
+          <span class="nav-card-title">Send money for free</span>
+        </a>
+        <a href="#" class="nav-card">
+          <div class="nav-card-icon" style="background:#f59e0b;">
+            <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="9" stroke="#000" stroke-width="2" fill="none"/><path d="M12 7v5l3 3" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+          <span class="nav-card-title">Save for your goals</span>
+        </a>
+        <a href="#" class="nav-card">
+          <div class="nav-card-icon" style="background:#8b5cf6;">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2zm10-10V7a4 4 0 0 0-8 0v4" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+          </div>
+          <span class="nav-card-title">Know your money is safe</span>
+        </a>
+        <a href="#" class="nav-card">
+          <div class="nav-card-icon" style="background:#ec4899;">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 22s-8-4.5-8-11.8A5.2 5.2 0 0 1 12 5a5.2 5.2 0 0 1 8 5.2c0 7.3-8 11.8-8 11.8z" stroke="#fff" stroke-width="2" fill="none"/></svg>
+          </div>
+          <span class="nav-card-title">Deposit your paychecks</span>
+        </a>
+      </div>
+      <div class="nav-secondary">
+        <a href="#">About</a>
+        <a href="#">For Businesses</a>
+        <a href="#">Support</a>
+        <a href="#">Blog</a>
+      </div>
+      <div class="nav-tertiary">
+        <a href="#">Careers</a>
+        <a href="#">Press</a>
+        <a href="#">Legal</a>
+        <a href="#">Privacy</a>
+      </div>
+    </div>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero" id="hero" data-bg-color="#00E013" data-text-color="#000000">
+      <div class="hero-bg"></div>
+      <div class="hero-masked-content" id="heroMaskedContent"></div>
+      <div class="hero-content" id="heroContent">
+        <div class="hero-headline">
+          <h1>The way money should work</h1>
+        </div>
+        <div class="hero-media">
+          <div class="hero-phone">
+            <div class="hero-phone-ui">
+              <div class="phone-ui-statusbar"><span>9:41</span><span>···</span></div>
+              <div class="phone-ui-row"><span class="phone-ui-chip">Add money</span><span class="phone-ui-chip">Withdraw</span></div>
+              <div class="phone-ui-card">
+                <div class="phone-ui-card-row"><span style="font-weight:500;">Green status</span><span style="opacity:0.5;">$440 to renew</span></div>
+                <div class="phone-ui-bar"><div class="phone-ui-bar-fill"></div></div>
+              </div>
+              <div class="phone-ui-card">
+                <small style="opacity:0.5;">Savings</small>
+                <div style="font-size:1.4em;font-weight:600;">$980.00</div>
+                <small style="opacity:0.4;">$20 to goal</small>
+              </div>
+              <div class="phone-ui-card">
+                <small style="font-weight:500;">Borrow</small>
+                <div><span style="font-weight:600;">$150.00</span> <small style="opacity:0.5;">available</small></div>
+                <div><span style="font-weight:600;">$50.00</span> <small style="opacity:0.5;">owed</small></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-desc">
+          <p>From getting paid to growing what you've got, Crunch Time makes managing your money effortless and instant—without all the fees.</p>
+          <a href="#" class="pill-btn pill-btn--light-filled">Get started <svg width="11" height="11" viewBox="0 -4 13 13" fill="none" style="margin-left:0.5em;"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.823.5l4.95 4.95a.778.778 0 010 1.1l-4.95 4.95a.778.778 0 01-1.1-1.1l3.622-3.622H.778a.778.778 0 010-1.556h8.567L5.723 1.6a.778.778 0 011.1-1.1z" fill="currentColor"/></svg></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== HIGH-YIELD / GREEN ===== -->
+    <section class="tcg-section section-white reveal" data-bg-color="#FFFFFF" data-text-color="#000000">
+      <div class="tcg-content">
+        <div class="tcg-header">
+          <h2>Earn, save, and<br>do more with<br>Crunch Time Green</h2>
+        </div>
+        <div class="tcg-media">
+          <div class="phone-portal portal-highyield"></div>
+        </div>
+        <div class="tcg-desc">
+          <p>It's easier than ever to earn our best benefits yet—higher Borrow limits, up to 3.25% savings interest, free overdraft coverage, and free withdrawals from 40k in-network ATMs.</p>
+          <a href="#" class="pill-btn pill-btn--dark-outlined">Learn about Green</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CARD DESIGN / FAN ===== -->
+    <section class="tcg-section section-black reveal" data-bg-color="#000000" data-text-color="#FFFFFF">
+      <div class="tcg-content">
+        <div class="tcg-header">
+          <h2>Crunch Time Card<br>is the debit card<br>that works for you</h2>
+        </div>
+        <div class="tcg-media">
+          <div class="card-fan-wrapper">
+            <div class="card-fan-container" id="cardFan">
+              <div class="fan-card fan-card--silver"></div>
+              <div class="fan-card fan-card--black"></div>
+              <div class="fan-card fan-card--pink"></div>
+              <div class="fan-card fan-card--white"></div>
+              <div class="fan-card fan-card--purple"></div>
+              <div class="fan-card fan-card--green"></div>
+            </div>
+          </div>
+        </div>
+        <div class="tcg-desc">
+          <ul>
+            <li>No hidden or monthly fees ever</li>
+            <li>Weekly custom cash back offers</li>
+            <li>Real-time transaction alerts</li>
+            <li>Card designs you can fully personalize</li>
+          </ul>
+          <a href="#" class="pill-btn pill-btn--light-outlined">Meet Crunch Time Card</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ACCESS CASH / CARD GRID ===== -->
+    <section class="card-grid-section section-black reveal" data-bg-color="#000000" data-text-color="#FFFFFF">
+      <div class="cg-text">
+        <div>
+          <h2>Access cash<br>when you<br>need it</h2>
+          <p>Explore our flexible ways to bridge the gap between payday and bill pay.</p>
+        </div>
+        <a href="#" class="pill-btn pill-btn--light-outlined">Learn more</a>
+      </div>
+      <div class="cg-grid">
+        <div class="promo-card promo-card--1" data-parallax-speed="0.3">
+          <div class="promo-card-bg"></div>
+          <div class="card-content">
+            <h4>Borrow</h4>
+            <p>Get a loan from $25 to $200</p>
+          </div>
+        </div>
+        <div class="promo-card promo-card--2" data-parallax-speed="0.6">
+          <div class="promo-card-bg"></div>
+          <div class="card-content">
+            <h4>ATM</h4>
+            <p>Fee-free withdrawals nationwide</p>
+          </div>
+        </div>
+        <div class="promo-card promo-card--3" data-parallax-speed="0.9">
+          <div class="promo-card-bg"></div>
+          <div class="card-content">
+            <h4>Direct Deposit</h4>
+            <p>Get paid up to two days early</p>
+          </div>
+        </div>
+        <div class="promo-card promo-card--4" data-parallax-speed="1.2">
+          <div class="promo-card-bg"></div>
+          <div class="card-content">
+            <h4>Rewards</h4>
+            <p>Earn cash back on every purchase</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== WHAT'S NEW ===== -->
+    <section class="tcg-section section-white reveal" data-bg-color="#FFFFFF" data-text-color="#000000">
+      <div class="tcg-content">
+        <div class="tcg-header">
+          <h2>See what's new<br>on Crunch Time</h2>
+        </div>
+        <div class="tcg-media">
+          <div class="phone-portal portal-whatsnew"></div>
+        </div>
+        <div class="tcg-desc">
+          <p>Sending money was just the beginning. We're building new ways for you to pay, get rewarded, and easily manage or grow your cash on your terms.</p>
+          <a href="#" class="pill-btn pill-btn--dark-outlined">See what's new</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SAVINGS ===== -->
+    <section class="tcg-section section-white reveal" data-bg-color="#FFFFFF" data-text-color="#000000">
+      <div class="tcg-content">
+        <div class="tcg-header">
+          <h2>Make your money<br>go even further</h2>
+        </div>
+        <div class="tcg-media">
+          <div class="phone-portal portal-savings"></div>
+        </div>
+        <div class="tcg-desc">
+          <p>We make it easy to save and grow your money with up to 3.25% interest, automatic savings tools, and the ability to turn spare change into stocks or bitcoin.</p>
+          <a href="#" class="pill-btn pill-btn--dark-outlined">Learn how to save and grow</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== P2P / SEND ===== -->
+    <section class="tcg-section section-white reveal" data-bg-color="#FFFFFF" data-text-color="#000000">
+      <div class="tcg-content">
+        <div class="tcg-header">
+          <h2>Sending money<br>is fast, free,<br>and made for you</h2>
+        </div>
+        <div class="tcg-media">
+          <div class="phone-portal portal-p2p"></div>
+        </div>
+        <div class="tcg-desc">
+          <ul>
+            <li>Personalize payments with stickers and text</li>
+            <li>Collect money from a group with pools</li>
+            <li>Sync your contacts to pay friends easily</li>
+            <li>Send money confidently with Security Lock</li>
+          </ul>
+          <a href="#" class="pill-btn pill-btn--dark-outlined">Send money</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SECURITY ===== -->
+    <section class="tcg-section section-black reveal" data-bg-color="#000000" data-text-color="#FFFFFF">
+      <div class="tcg-content">
+        <div class="tcg-header">
+          <h2>Security built<br>into every swipe,<br>tap, and send</h2>
+        </div>
+        <div class="tcg-media">
+          <div class="phone-portal portal-security"></div>
+        </div>
+        <div class="tcg-desc">
+          <p>Since 2020, we've prevented $2 billion+ in scams—while protecting what matters with real-time monitoring, Zero Fraud Liability, and FDIC insurance, subject to terms.</p>
+          <a href="#" class="pill-btn pill-btn--light-outlined">Learn about security</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== REVIEWS ===== -->
+    <section class="tcg-section section-white reveal" data-bg-color="#FFFFFF" data-text-color="#000000">
+      <div class="tcg-content">
+        <div class="tcg-header">
+          <h2>The money app<br>57 million+<br>people trust</h2>
+        </div>
+        <div class="tcg-media">
+          <div class="phone-portal portal-reviews"></div>
+        </div>
+        <div class="tcg-desc">
+          <blockquote>Crunch Time makes it so easy to manage everything—I use it for saving, splitting bills, and getting paid. It's all-in-one.</blockquote>
+          <a href="#" class="pill-btn pill-btn--dark-outlined">Read reviews</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer">
+      <div class="footer-container">
+        <div class="footer-hero reveal">
+          <div class="footer-hero-headline">
+            <h1>Crunch Time<br>makes money<br>simple</h1>
+          </div>
+          <div class="footer-stats">
+            <div class="stat-card">
+              <h3>5★</h3>
+              <p>Editor's Choice on the App Store</p>
+            </div>
+            <div class="stat-card">
+              <h3>9.9m+</h3>
+              <p>Apple App Store and Google Play reviews</p>
+            </div>
+            <div class="stat-card">
+              <h3>4.5★</h3>
+              <p>Rated Excellent on Trustpilot</p>
+            </div>
+            <div class="stat-card stat-card--cta">
+              <h3>Sign up now</h3>
+              <p>&rarr;</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-contact">
+          <p>Questions? We're here to help.</p>
+          <a href="#">1-800-FLOWPAY</a>
+          <p style="margin-top: 4px;"><a href="#" style="color: rgba(255,255,255,0.6);">Chat with support</a> &middot; Available 9am-9pm ET</p>
+        </div>
+
+        <div class="footer-links">
+          <a href="#">Careers</a>
+          <a href="#">Press</a>
+          <a href="#">Help</a>
+          <a href="#">Status</a>
+          <a href="#">Legal</a>
+          <a href="#">Licenses</a>
+          <a href="#">Privacy Notice</a>
+        </div>
+
+        <div class="footer-social">
+          <a href="#" class="social-icon" aria-label="Twitter">
+            <svg viewBox="0 0 24 24"><path d="M22 4.01c-1 .49-1.98.689-3 .99-1.121-1.265-2.783-1.335-4.38-.737S11.977 6.323 12 8v1c-3.245.083-6.135-1.395-8-4 0 0-4.182 7.433 4 11-1.872 1.247-3.739 2.088-6 2 3.308 1.803 6.913 2.423 10.034 1.517 3.58-1.04 6.522-3.723 7.651-7.742a13.84 13.84 0 0 0 .497-3.753C20.18 7.773 21.692 5.25 22 4.009z"/></svg>
+          </a>
+          <a href="#" class="social-icon" aria-label="Instagram">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.5"/></svg>
+          </a>
+          <a href="#" class="social-icon" aria-label="TikTok">
+            <svg viewBox="0 0 24 24"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+
+        <div class="footer-disclaimers">
+          <small>Crunch Time is a financial technology company, not a bank. Banking services provided by Partner Bank, Member FDIC. The Crunch Time Visa Debit Card is issued by Partner Bank pursuant to a license from Visa U.S.A. Inc.</small>
+          <small>Savings yield is variable and subject to change. The annual percentage yield ("APY") may change at any time, at Crunch Time's discretion. Fees may reduce earnings.</small>
+          <small>Borrow features are subject to eligibility. Loan amounts range from $25 to $200. Repayment terms vary. Not available in all states.</small>
+          <small>&copy; 2026 Crunch Time, Inc. All rights reserved.</small>
+        </div>
+      </div>
+    </footer>
+  </div><!-- .page-wrapper -->
+
+  <!-- ===== FLOATING CTA ===== -->
+  <a class="floating-cta" id="floatingCta" href="#">
+    <span class="floating-cta-content">Download Crunch Time <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor"><path d="M1 6.5h11M7.5 1l5 5.5-5 5.5" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+  </a>
+
+  <script>
+    (function() {
+      'use strict';
+
+      /* ===== DOM REFS ===== */
+      var pageWrapper = document.querySelector('.page-wrapper');
+      var navWrap = document.getElementById('navWrap');
+      var heroEl = document.getElementById('hero');
+      var heroMaskedContent = document.getElementById('heroMaskedContent');
+      var heroContent = document.getElementById('heroContent');
+
+      /* Color-managed sections (have data-bg-color) */
+      var colorSections = document.querySelectorAll('[data-bg-color]');
+      /* Phone portals inside TCG sections */
+      var phonePortals = document.querySelectorAll('.tcg-media .phone-portal');
+      /* TCG headers and descriptions for content parallax */
+      var tcgHeaders = document.querySelectorAll('.tcg-header');
+      var tcgDescs = document.querySelectorAll('.tcg-desc');
+
+      /* Enable color-managed mode — sections become transparent, wrapper bg transitions */
+      pageWrapper.classList.add('color-managed');
+
+      function getMaxMaskScale() {
+        return 2 * Math.max(window.innerWidth / 337, window.innerHeight / 724);
+      }
+
+      // Fire intro animation after a short delay
+      setTimeout(function() {
+        heroMaskedContent.style.setProperty('--mask-scale', getMaxMaskScale());
+        heroEl.classList.add('intro-complete');
+        setTimeout(function() {
+          navWrap.classList.add('visible');
+        }, 600);
+      }, 300);
+
+      /* ===== HERO MASK SCALE (scroll exit) ===== */
+      function updateHeroMask() {
+        var scrollY = window.scrollY;
+        var vh = window.innerHeight;
+        var progress = Math.min(Math.max(scrollY / (vh * 0.5), 0), 1);
+        var eased = 1 - Math.pow(1 - progress, 3);
+        var maxScale = getMaxMaskScale();
+        var scale = maxScale - eased * (maxScale - 1);
+        heroMaskedContent.style.setProperty('--mask-scale', scale);
+
+        var contentOpacity = Math.max(0, 1 - progress * 2.5);
+        heroContent.style.setProperty('--content-opacity', contentOpacity);
+        document.querySelector('.hero-bg').style.opacity = contentOpacity;
+
+        if (heroEl.classList.contains('intro-complete') && window.innerWidth >= 1024) {
+          var headline = heroEl.querySelector('.hero-headline');
+          if (headline && progress > 0) {
+            headline.style.transform = 'translateY(' + (-progress * 50) + '%)';
+            headline.style.opacity = contentOpacity;
+          }
+        }
+      }
+
+      /* ===== NAV HIDE/SHOW ===== */
+      var lastScrollY = 0;
+      var introNavShown = false;
+
+      function updateNav() {
+        var scrollY = window.scrollY;
+        if (!introNavShown && heroEl.classList.contains('intro-complete')) {
+          introNavShown = true;
+        }
+        if (!introNavShown) { lastScrollY = scrollY; return; }
+
+        if (scrollY < 100) {
+          navWrap.classList.add('visible');
+        } else if (scrollY < lastScrollY) {
+          navWrap.classList.add('visible');
+        } else {
+          navWrap.classList.remove('visible');
+        }
+        lastScrollY = scrollY;
+      }
+
+      /* ===== BACKGROUND COLOR TRANSITIONS ===== */
+      var currentBg = '#00E013';
+
+      function updateSectionColors() {
+        var vh = window.innerHeight;
+        var center = vh / 2;
+        var closest = null;
+        var closestDist = Infinity;
+
+        colorSections.forEach(function(section) {
+          var rect = section.getBoundingClientRect();
+          // Skip sections entirely off-screen
+          if (rect.bottom < 0 || rect.top > vh) return;
+          var sectionCenter = rect.top + rect.height / 2;
+          var dist = Math.abs(sectionCenter - center);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closest = section;
+          }
+        });
+
+        if (closest) {
+          var bg = closest.dataset.bgColor;
+          if (bg !== currentBg) {
+            currentBg = bg;
+            pageWrapper.style.setProperty('--bg-color', bg);
+            pageWrapper.style.setProperty('--text-color', closest.dataset.textColor || '#fff');
+          }
+        }
+      }
+
+      /* ===== LERP-BASED PARALLAX SYSTEM ===== */
+      var promoCards = document.querySelectorAll('.promo-card[data-parallax-speed]');
+      var floatingCta = document.getElementById('floatingCta');
+      var heroBg = document.querySelector('.hero-bg');
+
+      // Initialize lerped Y values
+      phonePortals.forEach(function(p) { p._currentY = 0; p._targetY = 0; });
+      tcgHeaders.forEach(function(h) { h._currentY = 0; h._targetY = 0; });
+      tcgDescs.forEach(function(d) { d._currentY = 0; d._targetY = 0; });
+      promoCards.forEach(function(c) { c._currentY = 0; c._targetY = 0; });
+
+      var LERP_PORTAL = 0.08;
+      var LERP_HEADER = 0.12;
+      var LERP_DESC = 0.10;
+      var LERP_PROMO = 0.07;
+
+      var scrollIdle = 0;
+      var COAST_FRAMES = 20;
+      var rafRunning = false;
+
+      function computeTargets() {
+        var vh = window.innerHeight;
+        var center = vh / 2;
+        var isDesktop = window.innerWidth >= 1024;
+
+        if (isDesktop) {
+          phonePortals.forEach(function(portal) {
+            var section = portal.closest('.tcg-section');
+            if (!section) return;
+            var rect = section.getBoundingClientRect();
+            var sectionCenter = rect.top + rect.height / 2;
+            portal._targetY = (sectionCenter - center) * 0.15;
+          });
+          tcgHeaders.forEach(function(header) {
+            var section = header.closest('.tcg-section');
+            if (!section) return;
+            var rect = section.getBoundingClientRect();
+            var sectionCenter = rect.top + rect.height / 2;
+            header._targetY = (sectionCenter - center) * 0.05;
+          });
+          tcgDescs.forEach(function(desc) {
+            var section = desc.closest('.tcg-section');
+            if (!section) return;
+            var rect = section.getBoundingClientRect();
+            var sectionCenter = rect.top + rect.height / 2;
+            desc._targetY = (sectionCenter - center) * 0.08;
+          });
+        } else {
+          phonePortals.forEach(function(p) { p._targetY = 0; });
+          tcgHeaders.forEach(function(h) { h._targetY = 0; });
+          tcgDescs.forEach(function(d) { d._targetY = 0; });
+        }
+
+        promoCards.forEach(function(card) {
+          var rect = card.getBoundingClientRect();
+          var speed = parseFloat(card.dataset.parallaxSpeed);
+          card._targetY = (rect.top - center) * speed * 0.12;
+        });
+      }
+
+      function applyLerp(el, factor) {
+        el._currentY += (el._targetY - el._currentY) * factor;
+        el.style.transform = 'translateY(' + el._currentY + 'px)';
+      }
+
+      function lerpTick() {
+        computeTargets();
+
+        phonePortals.forEach(function(p) { applyLerp(p, LERP_PORTAL); });
+        tcgHeaders.forEach(function(h) { applyLerp(h, LERP_HEADER); });
+        tcgDescs.forEach(function(d) { applyLerp(d, LERP_DESC); });
+        promoCards.forEach(function(c) { applyLerp(c, LERP_PROMO); });
+
+        scrollIdle++;
+        if (scrollIdle < COAST_FRAMES) {
+          requestAnimationFrame(lerpTick);
+        } else {
+          rafRunning = false;
+        }
+      }
+
+      function startLerpLoop() {
+        scrollIdle = 0;
+        if (!rafRunning) {
+          rafRunning = true;
+          requestAnimationFrame(lerpTick);
+        }
+      }
+
+      function updateFloatingCta() {
+        if (window.scrollY > 1.5 * window.innerHeight) {
+          floatingCta.classList.add('show');
+        } else {
+          floatingCta.classList.remove('show');
+        }
+      }
+
+      /* ===== SCROLL HANDLER ===== */
+      function onScroll() {
+        updateHeroMask();
+        updateNav();
+        updateSectionColors();
+        updateFloatingCta();
+        startLerpLoop();
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      /* ===== CARD FAN — IntersectionObserver ===== */
+      var cardFan = document.getElementById('cardFan');
+      if (cardFan) {
+        var fanObserver = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('open');
+            } else {
+              entry.target.classList.remove('open');
+            }
+          });
+        }, { threshold: 0.3 });
+        fanObserver.observe(cardFan);
+      }
+
+      /* ===== SECTION REVEALS — IntersectionObserver ===== */
+      var revealElements = document.querySelectorAll('.reveal');
+      var revealObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.12, rootMargin: '-40px' });
+      revealElements.forEach(function(el) { revealObserver.observe(el); });
+
+      /* ===== NAV OVERLAY ===== */
+      var hamburgerBtn = document.getElementById('hamburgerBtn');
+      var navOverlay = document.getElementById('navOverlay');
+      var navClose = document.getElementById('navClose');
+
+      hamburgerBtn.addEventListener('click', function() {
+        navOverlay.classList.add('open');
+      });
+      navClose.addEventListener('click', function() {
+        navOverlay.classList.remove('open');
+      });
+
+      /* ===== INITIAL CALLS ===== */
+      updateHeroMask();
+      updateSectionColors();
+      updateFloatingCta();
+    })();
+  </script>
+</body>
+</html>
