@@ -1134,6 +1134,68 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    /* ===== HERO → SECTION-ONE SEAMLESS TRANSITION ===== */
+    .hero-s1-wrapper { display: contents; }
+    @media (min-width: 1024px) {
+      .hero-s1-wrapper {
+        display: grid;
+        grid-column: 1 / -1;
+        grid-template-columns: subgrid;
+        grid-template-rows: 250vh;
+      }
+      .hero-s1-wrapper > .hero,
+      .hero-s1-wrapper > #sectionOne {
+        grid-row: 1;
+        grid-column: 1 / -1;
+        position: sticky;
+        top: 0;
+        align-self: start;
+      }
+      .hero-s1-wrapper > .hero { z-index: 3; }
+      .hero-s1-wrapper > #sectionOne { z-index: 2; }
+      /* Disable CSS reveal — JS drives the transition on desktop */
+      .hero-s1-wrapper > #sectionOne.reveal,
+      .hero-s1-wrapper > #sectionOne.reveal .phone-portal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+      .hero-s1-wrapper > #sectionOne .tcg-header,
+      .hero-s1-wrapper > #sectionOne .tcg-desc,
+      .hero-s1-wrapper > #sectionOne .phone-portal {
+        will-change: opacity, transform;
+      }
+      .hero-s1-wrapper > .hero.hero-faded { pointer-events: none; }
+      /* Disable CSS bg transition during JS-driven scroll color lerp */
+      .page-wrapper.scroll-color-active {
+        transition: color 0.6s ease-in-out;
+      }
+    }
+
+    /* Section-one phone mock UI */
+    .s1-phone-ui {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: inherit;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      color: #000;
+      font-size: 13px;
+      overflow: hidden;
+    }
+    @media (min-width: 1024px) {
+      .s1-phone-ui {
+        border-radius: 44px;
+        padding: 28px 24px;
+        gap: 14px;
+        font-size: 15px;
+        box-shadow: 0 8px 60px rgba(0,0,0,0.08);
+      }
+    }
   </style>
 </head>
 <body>
@@ -1212,6 +1274,9 @@
       </div>
     </div>
 
+    <!-- ===== HERO → SECTION-ONE TRANSITION WRAPPER ===== -->
+    <div class="hero-s1-wrapper" id="heroS1Wrapper">
+
     <!-- ===== HERO ===== -->
     <section class="hero" id="hero" data-bg-color="#00E013" data-text-color="#000000">
       <div class="hero-bg"></div>
@@ -1250,13 +1315,33 @@
     </section>
 
     <!-- ===== HIGH-YIELD / GREEN ===== -->
-    <section class="tcg-section section-white reveal" data-bg-color="#FFFFFF" data-text-color="#000000">
+    <section class="tcg-section section-white reveal" id="sectionOne" data-bg-color="#FFFFFF" data-text-color="#000000">
       <div class="tcg-content">
         <div class="tcg-header">
           <h2>Earn, save, and<br>do more with<br>Crunch Time Green</h2>
         </div>
         <div class="tcg-media">
-          <div class="phone-portal portal-highyield"></div>
+          <div class="phone-portal portal-highyield">
+            <div class="s1-phone-ui">
+              <div class="phone-ui-statusbar"><span>9:41</span><span>···</span></div>
+              <div class="phone-ui-card">
+                <div class="phone-ui-card-row">
+                  <span style="font-weight:500">Green status</span>
+                  <span style="opacity:0.5">$<span id="greenStatusAmt">500</span> to renew</span>
+                </div>
+                <div class="phone-ui-bar"><div class="phone-ui-bar-fill" id="greenStatusBar"></div></div>
+              </div>
+              <div class="phone-ui-card">
+                <small style="opacity:0.5">Cash Balance</small>
+                <div style="font-size:1.4em;font-weight:600">$789.13</div>
+              </div>
+              <div class="phone-ui-card">
+                <small style="opacity:0.5">Savings</small>
+                <div style="font-size:1.1em;font-weight:600">$2,450.00</div>
+                <small style="opacity:0.4">3.25% APY</small>
+              </div>
+            </div>
+          </div>
         </div>
         <div class="tcg-desc">
           <p>It's easier than ever to earn our best benefits yet—higher Borrow limits, up to 3.25% savings interest, free overdraft coverage, and free withdrawals from 40k in-network ATMs.</p>
@@ -1264,6 +1349,8 @@
         </div>
       </div>
     </section>
+
+    </div><!-- /.hero-s1-wrapper -->
 
     <!-- ===== CARD DESIGN / FAN ===== -->
     <section class="tcg-section section-black reveal" data-bg-color="#000000" data-text-color="#FFFFFF">
@@ -1527,9 +1614,114 @@
       }, 300);
 
       /* ===== HERO MASK SCALE (scroll exit) ===== */
+      var heroS1Wrapper = document.getElementById('heroS1Wrapper');
+      var sectionOne = document.getElementById('sectionOne');
+      var heroTransitionProgress = 0;
+      var s1Header = sectionOne ? sectionOne.querySelector('.tcg-header') : null;
+      var s1Desc = sectionOne ? sectionOne.querySelector('.tcg-desc') : null;
+      var s1Phone = sectionOne ? sectionOne.querySelector('.phone-portal') : null;
+      var greenStatusBar = document.getElementById('greenStatusBar');
+      var greenStatusAmt = document.getElementById('greenStatusAmt');
+
+      function smoothstep(x) { return x * x * (3 - 2 * x); }
+
       function updateHeroMask() {
         var scrollY = window.scrollY;
         var vh = window.innerHeight;
+        var isDesktop = window.innerWidth >= 1024;
+
+        /* --- Desktop: wrapper-driven seamless transition --- */
+        if (isDesktop && heroS1Wrapper) {
+          var wrapperRect = heroS1Wrapper.getBoundingClientRect();
+          var scrollIntoWrapper = -wrapperRect.top;
+          var transitionRange = heroS1Wrapper.offsetHeight - vh;
+          var progress = Math.min(Math.max(scrollIntoWrapper / transitionRange, 0), 1);
+          heroTransitionProgress = progress;
+
+          /* Phase 1 — Hero content fade out (0 → 0.35) */
+          var heroFade = 1 - smoothstep(Math.min(progress / 0.35, 1));
+          heroContent.style.setProperty('--content-opacity', heroFade);
+          document.querySelector('.hero-bg').style.opacity = heroFade;
+
+          /* Hero headline drifts up */
+          var headline = heroEl.querySelector('.hero-headline');
+          if (headline && heroEl.classList.contains('intro-complete')) {
+            headline.style.transform = 'translateY(' + (-progress * 80) + '%)';
+            headline.style.opacity = heroFade;
+          }
+          /* Hero desc drifts up */
+          var heroDesc = heroEl.querySelector('.hero-desc');
+          if (heroDesc) {
+            heroDesc.style.transform = 'translateY(' + (-progress * 50) + '%)';
+          }
+
+          /* Fade hero class for pointer-events */
+          if (heroFade < 0.05) {
+            heroEl.classList.add('hero-faded');
+          } else {
+            heroEl.classList.remove('hero-faded');
+          }
+
+          /* Phase 2 — Mask shrinks green to phone pillar (0.05 → 0.55) */
+          var maskP = Math.min(Math.max((progress - 0.05) / 0.5, 0), 1);
+          var maskEased = 1 - Math.pow(1 - maskP, 3);
+          var maxScale = getMaxMaskScale();
+          var scale = maxScale - maskEased * (maxScale - 1);
+          heroMaskedContent.style.setProperty('--mask-scale', scale);
+
+          /* Phase 3 — Section-one phone rises from below (0.1 → 0.45) */
+          var phoneP = smoothstep(Math.min(Math.max((progress - 0.1) / 0.35, 0), 1));
+          if (s1Phone) {
+            s1Phone.style.opacity = phoneP;
+            s1Phone.style.transform = 'translateY(' + (140 * (1 - phoneP)) + 'px)';
+          }
+
+          /* Phase 4 — Section-one header fades in (0.2 → 0.5) */
+          var hdrP = smoothstep(Math.min(Math.max((progress - 0.2) / 0.3, 0), 1));
+          if (s1Header) {
+            s1Header.style.opacity = hdrP;
+            s1Header.style.transform = 'translateY(' + (40 * (1 - hdrP)) + 'px)';
+          }
+
+          /* Phase 5 — Section-one desc fades in (0.25 → 0.55) */
+          var descP = smoothstep(Math.min(Math.max((progress - 0.25) / 0.3, 0), 1));
+          if (s1Desc) {
+            s1Desc.style.opacity = descP;
+            s1Desc.style.transform = 'translateY(' + (40 * (1 - descP)) + 'px)';
+          }
+
+          /* Phase 6 — Green status bar animation (0.55 → 0.85) */
+          var barP = Math.min(Math.max((progress - 0.55) / 0.3, 0), 1);
+          if (greenStatusBar) {
+            greenStatusBar.style.width = (35 + barP * 55) + '%';
+          }
+          if (greenStatusAmt) {
+            var amt = Math.round(500 - barP * 292);
+            greenStatusAmt.textContent = amt;
+          }
+
+          /* Background color: smooth green → white lerp based on progress */
+          var colorP = smoothstep(Math.min(Math.max((progress - 0.15) / 0.35, 0), 1));
+          var gr = Math.round(0 + 255 * colorP);
+          var gg = Math.round(224 + (255 - 224) * colorP);
+          var gb = Math.round(19 + (255 - 19) * colorP);
+          var bgVal = 'rgb(' + gr + ',' + gg + ',' + gb + ')';
+          pageWrapper.style.setProperty('--bg-color', bgVal);
+          pageWrapper.style.setProperty('--text-color', '#000000');
+          /* Keep currentBg in sync so color-manager resumes smoothly */
+          if (colorP >= 1) currentBg = '#FFFFFF';
+
+          /* Disable CSS bg transition while JS lerps the color */
+          if (progress > 0 && progress < 1) {
+            pageWrapper.classList.add('scroll-color-active');
+          } else {
+            pageWrapper.classList.remove('scroll-color-active');
+          }
+
+          return; /* skip mobile path */
+        }
+
+        /* --- Mobile: original behavior --- */
         var progress = Math.min(Math.max(scrollY / (vh * 0.5), 0), 1);
         var eased = 1 - Math.pow(1 - progress, 3);
         var maxScale = getMaxMaskScale();
@@ -1576,12 +1768,19 @@
       function updateSectionColors() {
         var vh = window.innerHeight;
         var center = vh / 2;
+        var isDesktop = window.innerWidth >= 1024;
+
         var closest = null;
         var closestDist = Infinity;
 
         colorSections.forEach(function(section) {
+          /* On desktop, skip hero always; skip sectionOne only during active transition */
+          if (isDesktop && heroS1Wrapper && heroS1Wrapper.contains(section)) {
+            if (section.id === 'hero') return;
+            if (section.id === 'sectionOne' && heroTransitionProgress < 1) return;
+          }
+
           var rect = section.getBoundingClientRect();
-          // Skip sections entirely off-screen
           if (rect.bottom < 0 || rect.top > vh) return;
           var sectionCenter = rect.top + rect.height / 2;
           var dist = Math.abs(sectionCenter - center);
@@ -1606,10 +1805,10 @@
       var floatingCta = document.getElementById('floatingCta');
       var heroBg = document.querySelector('.hero-bg');
 
-      // Initialize lerped Y values
-      phonePortals.forEach(function(p) { p._currentY = 0; p._targetY = 0; });
-      tcgHeaders.forEach(function(h) { h._currentY = 0; h._targetY = 0; });
-      tcgDescs.forEach(function(d) { d._currentY = 0; d._targetY = 0; });
+      // Initialize lerped Y values — mark sectionOne elements to skip
+      phonePortals.forEach(function(p) { p._currentY = 0; p._targetY = 0; p._skipLerp = !!(sectionOne && sectionOne.contains(p)); });
+      tcgHeaders.forEach(function(h) { h._currentY = 0; h._targetY = 0; h._skipLerp = !!(sectionOne && sectionOne.contains(h)); });
+      tcgDescs.forEach(function(d) { d._currentY = 0; d._targetY = 0; d._skipLerp = !!(sectionOne && sectionOne.contains(d)); });
       promoCards.forEach(function(c) { c._currentY = 0; c._targetY = 0; });
 
       var LERP_PORTAL = 0.08;
@@ -1629,21 +1828,21 @@
         if (isDesktop) {
           phonePortals.forEach(function(portal) {
             var section = portal.closest('.tcg-section');
-            if (!section) return;
+            if (!section || section.id === 'sectionOne') return;
             var rect = section.getBoundingClientRect();
             var sectionCenter = rect.top + rect.height / 2;
             portal._targetY = (sectionCenter - center) * 0.15;
           });
           tcgHeaders.forEach(function(header) {
             var section = header.closest('.tcg-section');
-            if (!section) return;
+            if (!section || section.id === 'sectionOne') return;
             var rect = section.getBoundingClientRect();
             var sectionCenter = rect.top + rect.height / 2;
             header._targetY = (sectionCenter - center) * 0.05;
           });
           tcgDescs.forEach(function(desc) {
             var section = desc.closest('.tcg-section');
-            if (!section) return;
+            if (!section || section.id === 'sectionOne') return;
             var rect = section.getBoundingClientRect();
             var sectionCenter = rect.top + rect.height / 2;
             desc._targetY = (sectionCenter - center) * 0.08;
@@ -1669,9 +1868,9 @@
       function lerpTick() {
         computeTargets();
 
-        phonePortals.forEach(function(p) { applyLerp(p, LERP_PORTAL); });
-        tcgHeaders.forEach(function(h) { applyLerp(h, LERP_HEADER); });
-        tcgDescs.forEach(function(d) { applyLerp(d, LERP_DESC); });
+        phonePortals.forEach(function(p) { if (!p._skipLerp) applyLerp(p, LERP_PORTAL); });
+        tcgHeaders.forEach(function(h) { if (!h._skipLerp) applyLerp(h, LERP_HEADER); });
+        tcgDescs.forEach(function(d) { if (!d._skipLerp) applyLerp(d, LERP_DESC); });
         promoCards.forEach(function(c) { applyLerp(c, LERP_PROMO); });
 
         scrollIdle++;
@@ -1732,7 +1931,11 @@
           }
         });
       }, { threshold: 0.12, rootMargin: '-40px' });
-      revealElements.forEach(function(el) { revealObserver.observe(el); });
+      revealElements.forEach(function(el) {
+        /* On desktop, skip sectionOne — scroll-driven transition handles it */
+        if (window.innerWidth >= 1024 && el.id === 'sectionOne') return;
+        revealObserver.observe(el);
+      });
 
       /* ===== NAV OVERLAY ===== */
       var hamburgerBtn = document.getElementById('hamburgerBtn');
@@ -1745,6 +1948,13 @@
       navClose.addEventListener('click', function() {
         navOverlay.classList.remove('open');
       });
+
+      /* ===== INIT: Set section-one hidden on desktop ===== */
+      if (window.innerWidth >= 1024 && sectionOne) {
+        if (s1Phone) { s1Phone.style.opacity = '0'; s1Phone.style.transform = 'translateY(140px)'; }
+        if (s1Header) { s1Header.style.opacity = '0'; s1Header.style.transform = 'translateY(40px)'; }
+        if (s1Desc) { s1Desc.style.opacity = '0'; s1Desc.style.transform = 'translateY(40px)'; }
+      }
 
       /* ===== INITIAL CALLS ===== */
       updateHeroMask();
