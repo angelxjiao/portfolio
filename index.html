@@ -1142,7 +1142,7 @@
         display: grid;
         grid-column: 1 / -1;
         grid-template-columns: subgrid;
-        grid-template-rows: 250vh;
+        grid-template-rows: 200vh;
       }
       .hero-s1-wrapper > .hero,
       .hero-s1-wrapper > #sectionOne {
@@ -1152,8 +1152,9 @@
         top: 0;
         align-self: start;
       }
-      .hero-s1-wrapper > .hero { z-index: 3; }
-      .hero-s1-wrapper > #sectionOne { z-index: 2; }
+      .hero-s1-wrapper > .hero { z-index: 2; }
+      .hero-s1-wrapper > #sectionOne { z-index: 3; pointer-events: none; }
+      .hero-s1-wrapper > #sectionOne.s1-interactive { pointer-events: auto; }
       /* Disable CSS reveal — JS drives the transition on desktop */
       .hero-s1-wrapper > #sectionOne.reveal,
       .hero-s1-wrapper > #sectionOne.reveal .phone-portal {
@@ -1620,6 +1621,8 @@
       var s1Header = sectionOne ? sectionOne.querySelector('.tcg-header') : null;
       var s1Desc = sectionOne ? sectionOne.querySelector('.tcg-desc') : null;
       var s1Phone = sectionOne ? sectionOne.querySelector('.phone-portal') : null;
+      var s1PhoneUI = sectionOne ? sectionOne.querySelector('.s1-phone-ui') : null;
+      var heroPhone = heroEl ? heroEl.querySelector('.hero-phone') : null;
       var greenStatusBar = document.getElementById('greenStatusBar');
       var greenStatusAmt = document.getElementById('greenStatusAmt');
 
@@ -1638,60 +1641,78 @@
           var progress = Math.min(Math.max(scrollIntoWrapper / transitionRange, 0), 1);
           heroTransitionProgress = progress;
 
-          /* Phase 1 — Hero content fade out (0 → 0.35) */
+          /* Phase 1 — Hero content fade + phone scale down (0 → 0.35) */
           var heroFade = 1 - smoothstep(Math.min(progress / 0.35, 1));
           heroContent.style.setProperty('--content-opacity', heroFade);
           document.querySelector('.hero-bg').style.opacity = heroFade;
 
-          /* Hero headline drifts up */
+          /* Hero headline fades out */
           var headline = heroEl.querySelector('.hero-headline');
           if (headline && heroEl.classList.contains('intro-complete')) {
-            headline.style.transform = 'translateY(' + (-progress * 80) + '%)';
             headline.style.opacity = heroFade;
           }
-          /* Hero desc drifts up */
+          /* Hero desc fades out */
           var heroDesc = heroEl.querySelector('.hero-desc');
           if (heroDesc) {
-            heroDesc.style.transform = 'translateY(' + (-progress * 50) + '%)';
+            heroDesc.style.opacity = heroFade;
+          }
+          /* Hero phone scales down as it fades */
+          if (heroPhone) {
+            var heroScaleP = Math.min(progress / 0.35, 1);
+            var heroScale = 1.0 - 0.05 * heroScaleP;
+            heroPhone.style.transform = 'scale(' + heroScale + ')';
+            heroPhone.style.opacity = heroFade;
           }
 
           /* Fade hero class for pointer-events */
           if (heroFade < 0.05) {
             heroEl.classList.add('hero-faded');
+            if (sectionOne) sectionOne.classList.add('s1-interactive');
           } else {
             heroEl.classList.remove('hero-faded');
+            if (sectionOne) sectionOne.classList.remove('s1-interactive');
           }
 
-          /* Phase 2 — Mask shrinks green to phone pillar (0.05 → 0.55) */
-          var maskP = Math.min(Math.max((progress - 0.05) / 0.5, 0), 1);
+          /* Phase 2 — Mask shrinks green to phone pillar (0.10 → 0.65) */
+          var maskP = Math.min(Math.max((progress - 0.10) / 0.55, 0), 1);
           var maskEased = 1 - Math.pow(1 - maskP, 3);
           var maxScale = getMaxMaskScale();
           var scale = maxScale - maskEased * (maxScale - 1);
           heroMaskedContent.style.setProperty('--mask-scale', scale);
 
-          /* Phase 3 — Section-one phone rises from below (0.1 → 0.45) */
-          var phoneP = smoothstep(Math.min(Math.max((progress - 0.1) / 0.35, 0), 1));
+          /* Phase 3 — S1 phone: portal clips inner UI sliding up (0.0 → 0.50) */
+          var phoneP = smoothstep(Math.min(Math.max(progress / 0.50, 0), 1));
           if (s1Phone) {
-            s1Phone.style.opacity = phoneP;
-            s1Phone.style.transform = 'translateY(' + (140 * (1 - phoneP)) + 'px)';
+            s1Phone.style.opacity = '1';
+            s1Phone.style.transform = 'none';
+            /* Green bezel bg fades in during later phase (0.45 → 0.70) */
+            var bezelP = smoothstep(Math.min(Math.max((progress - 0.45) / 0.25, 0), 1));
+            if (bezelP < 0.01) {
+              s1Phone.style.background = 'transparent';
+            } else {
+              s1Phone.style.background = 'linear-gradient(160deg, rgba(0,224,19,' + bezelP + ') 0%, rgba(0,196,17,' + bezelP + ') 50%, rgba(0,140,13,' + bezelP + ') 100%)';
+            }
+          }
+          if (s1PhoneUI) {
+            s1PhoneUI.style.transform = 'translateY(' + (100 * (1 - phoneP)) + '%)';
           }
 
-          /* Phase 4 — Section-one header fades in (0.2 → 0.5) */
-          var hdrP = smoothstep(Math.min(Math.max((progress - 0.2) / 0.3, 0), 1));
+          /* Phase 4 — Section-one header fades in (0.30 → 0.55) */
+          var hdrP = smoothstep(Math.min(Math.max((progress - 0.30) / 0.25, 0), 1));
           if (s1Header) {
             s1Header.style.opacity = hdrP;
             s1Header.style.transform = 'translateY(' + (40 * (1 - hdrP)) + 'px)';
           }
 
-          /* Phase 5 — Section-one desc fades in (0.25 → 0.55) */
-          var descP = smoothstep(Math.min(Math.max((progress - 0.25) / 0.3, 0), 1));
+          /* Phase 5 — Section-one desc fades in (0.35 → 0.60) */
+          var descP = smoothstep(Math.min(Math.max((progress - 0.35) / 0.25, 0), 1));
           if (s1Desc) {
             s1Desc.style.opacity = descP;
             s1Desc.style.transform = 'translateY(' + (40 * (1 - descP)) + 'px)';
           }
 
           /* Phase 6 — Green status bar animation (0.55 → 0.85) */
-          var barP = Math.min(Math.max((progress - 0.55) / 0.3, 0), 1);
+          var barP = Math.min(Math.max((progress - 0.55) / 0.30, 0), 1);
           if (greenStatusBar) {
             greenStatusBar.style.width = (35 + barP * 55) + '%';
           }
@@ -1700,8 +1721,8 @@
             greenStatusAmt.textContent = amt;
           }
 
-          /* Background color: smooth green → white lerp based on progress */
-          var colorP = smoothstep(Math.min(Math.max((progress - 0.15) / 0.35, 0), 1));
+          /* Background color: smooth green → white lerp (0.25 → 0.65) */
+          var colorP = smoothstep(Math.min(Math.max((progress - 0.25) / 0.40, 0), 1));
           var gr = Math.round(0 + 255 * colorP);
           var gg = Math.round(224 + (255 - 224) * colorP);
           var gb = Math.round(19 + (255 - 19) * colorP);
@@ -1951,7 +1972,8 @@
 
       /* ===== INIT: Set section-one hidden on desktop ===== */
       if (window.innerWidth >= 1024 && sectionOne) {
-        if (s1Phone) { s1Phone.style.opacity = '0'; s1Phone.style.transform = 'translateY(140px)'; }
+        if (s1Phone) { s1Phone.style.opacity = '1'; s1Phone.style.transform = 'none'; s1Phone.style.background = 'transparent'; }
+        if (s1PhoneUI) { s1PhoneUI.style.transform = 'translateY(100%)'; }
         if (s1Header) { s1Header.style.opacity = '0'; s1Header.style.transform = 'translateY(40px)'; }
         if (s1Desc) { s1Desc.style.opacity = '0'; s1Desc.style.transform = 'translateY(40px)'; }
       }
