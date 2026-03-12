@@ -7,6 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      prefix: 'tw-',
+      corePlugins: { preflight: false },
+    }
+  </script>
   <style>
     /* ===== RESET ===== */
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -333,7 +340,8 @@
 
     /* Black bg sits behind — revealed as mask shrinks on desktop */
     .hero-bg {
-      position: fixed;
+      display: none; /* hidden on mobile — not needed without mask system */
+      position: absolute;
       top: 0;
       bottom: 0;
       left: 0;
@@ -347,7 +355,7 @@
       transition: opacity .1s linear, background-color .6s ease-in-out;
     }
     @media (min-width: 1024px) {
-      .hero-bg { position: absolute; }
+      .hero-bg { display: block; }
     }
 
     /* Green layer — on desktop, masked to phone shape via --mask-scale.
@@ -595,7 +603,7 @@
       grid-column: 1 / -1;
       display: grid;
       grid-template-columns: subgrid;
-      padding-top: 24px;
+      padding: 40px 0 24px;
       user-select: none;
     }
     @media (min-width: 1024px) {
@@ -612,13 +620,12 @@
       grid-column: contentStart / contentEnd;
       display: grid;
       grid-template-columns: subgrid;
-      grid-template-rows: minmax(50vh, auto) min-content min-content;
+      grid-template-rows: auto auto min-content;
       grid-auto-flow: row;
     }
     @media (min-width: 760px) {
       .tcg-content {
         text-wrap: balance;
-        grid-template-rows: minmax(60vh, auto) min-content min-content;
       }
     }
     @media (min-width: 1024px) {
@@ -654,8 +661,6 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 50vh;
-      max-height: 50vh;
       margin-bottom: max(24px, min(7vh, 54px));
     }
     .tcg-desc {
@@ -677,6 +682,7 @@
         height: 80vh;
         max-height: 80vh;
         margin-bottom: 0;
+        align-items: center;
       }
       .tcg-desc {
         grid-area: 1 / -4 / auto / span 3;
@@ -691,15 +697,21 @@
     .phone-portal {
       aspect-ratio: 337 / 724;
       width: 100%;
-      max-width: 284px;
+      max-width: 220px;
       border-radius: 14.6% / 7%;
       overflow: hidden;
       filter: drop-shadow(0 4px 100px rgba(0,0,0,0.1));
       will-change: transform;
     }
+    @media (min-width: 760px) {
+      .phone-portal {
+        max-width: 284px;
+      }
+    }
     @media (min-width: 1024px) {
       .phone-portal {
         height: 80vh;
+        max-height: 80vh;
         width: auto;
         max-width: none;
       }
@@ -967,7 +979,7 @@
     .stat-card {
       aspect-ratio: 1;
       border-radius: 14.3%;
-      padding: 40px 32px;
+      padding: 20px 16px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -976,18 +988,24 @@
       background: transparent;
       border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
     }
+    @media (min-width: 760px) {
+      .stat-card { padding: 40px 32px; }
+    }
     .stat-card h3 {
-      font-size: var(--headline-size-1);
+      font-size: var(--headline-size-3);
       letter-spacing: -0.03em;
       font-weight: 400;
       line-height: 0.95;
+    }
+    @media (min-width: 760px) {
+      .stat-card h3 { font-size: var(--headline-size-1); }
     }
     @media (min-width: 1024px) {
       .stat-card h3 { font-size: var(--headline-size-2); }
     }
     .stat-card p {
       color: rgba(255,255,255,0.6);
-      font-size: var(--headline-size-3);
+      font-size: var(--body-copy-size);
       letter-spacing: -0.03em;
       font-weight: 400;
       line-height: 1.1;
@@ -1195,6 +1213,16 @@
         gap: 14px;
         font-size: 15px;
         box-shadow: 0 8px 60px rgba(0,0,0,0.08);
+      }
+    }
+    /* ===== SCROLLYTELLING SECTION ===== */
+    .scrollytelling-root {
+      grid-column: 1 / -1;
+      display: none;
+    }
+    @media (min-width: 1024px) {
+      .scrollytelling-root {
+        display: block;
       }
     }
   </style>
@@ -1423,6 +1451,9 @@
         </div>
       </div>
     </section>
+
+    <!-- ===== SCROLLYTELLING (Desktop only, React island) ===== -->
+    <div id="scrollytelling-root" class="scrollytelling-root"></div>
 
     <!-- ===== WHAT'S NEW ===== -->
     <section class="tcg-section section-white reveal" data-bg-color="#FFFFFF" data-text-color="#000000">
@@ -1742,24 +1773,7 @@
           return; /* skip mobile path */
         }
 
-        /* --- Mobile: original behavior --- */
-        var progress = Math.min(Math.max(scrollY / (vh * 0.5), 0), 1);
-        var eased = 1 - Math.pow(1 - progress, 3);
-        var maxScale = getMaxMaskScale();
-        var scale = maxScale - eased * (maxScale - 1);
-        heroMaskedContent.style.setProperty('--mask-scale', scale);
-
-        var contentOpacity = Math.max(0, 1 - progress * 2.5);
-        heroContent.style.setProperty('--content-opacity', contentOpacity);
-        document.querySelector('.hero-bg').style.opacity = contentOpacity;
-
-        if (heroEl.classList.contains('intro-complete') && window.innerWidth >= 1024) {
-          var headline = heroEl.querySelector('.hero-headline');
-          if (headline && progress > 0) {
-            headline.style.transform = 'translateY(' + (-progress * 50) + '%)';
-            headline.style.opacity = contentOpacity;
-          }
-        }
+        /* --- Mobile: no scroll transition, hero is a normal static section --- */
       }
 
       /* ===== NAV HIDE/SHOW ===== */
@@ -1983,6 +1997,185 @@
       updateSectionColors();
       updateFloatingCta();
     })();
+  </script>
+
+  <!-- ===== SCROLLYTELLING REACT ISLAND ===== -->
+  <script type="module">
+    import React from 'https://esm.sh/react@18.3.1';
+    import { createRoot } from 'https://esm.sh/react-dom@18.3.1/client';
+    import { motion, useScroll, useTransform, useSpring } from 'https://esm.sh/framer-motion@11.15.0';
+
+    const { useRef, createElement: h } = React;
+
+    const SCENES = [
+      { bg: '#FFFFFF', headline: 'Send money\ninstantly', desc: 'Pay anyone, anywhere, with just a tap. No fees, no friction, no waiting.' },
+      { bg: '#00D632', headline: 'Grow your\nsavings', desc: 'Watch your money work harder with automatic round-ups and competitive yields.' },
+      { bg: '#000000', headline: 'Spend\nsmarter', desc: 'Real-time notifications, smart budgeting, and rewards on every purchase.' },
+    ];
+
+    function PhoneScene({ color }) {
+      return h('div', {
+        className: 'tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center',
+        style: { background: color, minHeight: '100%' },
+      });
+    }
+
+    function ScrollytellingSection() {
+      const trackRef = useRef(null);
+
+      const { scrollYProgress } = useScroll({
+        target: trackRef,
+        offset: ['start start', 'end end'],
+      });
+
+      const smoothProgress = useSpring(scrollYProgress, {
+        damping: 40,
+        stiffness: 90,
+        mass: 1,
+      });
+
+      // Phone film-strip: slides from 0 to -200%
+      const filmStripY = useTransform(smoothProgress, [0, 0.25, 0.5, 0.75, 1], ['0%', '0%', '-100%', '-100%', '-200%']);
+
+      // Headline 1: visible at start, slides up + fades out 25-50%
+      const h1Y = useTransform(smoothProgress, [0, 0.25, 0.5], ['0%', '0%', '-60%']);
+      const h1Opacity = useTransform(smoothProgress, [0, 0.25, 0.5], [1, 1, 0]);
+
+      // Headline 2: slides up + fades in 25-50%, then out 50-75%
+      const h2Y = useTransform(smoothProgress, [0.25, 0.5, 0.75], ['60%', '0%', '-60%']);
+      const h2Opacity = useTransform(smoothProgress, [0.25, 0.5, 0.5, 0.75], [0, 1, 1, 0]);
+
+      // Headline 3: slides up + fades in 50-75%
+      const h3Y = useTransform(smoothProgress, [0.5, 0.75], ['60%', '0%']);
+      const h3Opacity = useTransform(smoothProgress, [0.5, 0.75], [0, 1]);
+
+      // Desc 1
+      const d1Y = useTransform(smoothProgress, [0, 0.25, 0.5], ['0%', '0%', '-60%']);
+      const d1Opacity = useTransform(smoothProgress, [0, 0.25, 0.5], [1, 1, 0]);
+
+      // Desc 2
+      const d2Y = useTransform(smoothProgress, [0.25, 0.5, 0.5, 0.75], ['60%', '0%', '0%', '-60%']);
+      const d2Opacity = useTransform(smoothProgress, [0.25, 0.5, 0.5, 0.75], [0, 1, 1, 0]);
+
+      // Desc 3
+      const d3Y = useTransform(smoothProgress, [0.5, 0.75], ['60%', '0%']);
+      const d3Opacity = useTransform(smoothProgress, [0.5, 0.75], [0, 1]);
+
+      const headlines = [
+        { y: h1Y, opacity: h1Opacity },
+        { y: h2Y, opacity: h2Opacity },
+        { y: h3Y, opacity: h3Opacity },
+      ];
+
+      const descs = [
+        { y: d1Y, opacity: d1Opacity },
+        { y: d2Y, opacity: d2Opacity },
+        { y: d3Y, opacity: d3Opacity },
+      ];
+
+      // 500vh scrollable track
+      return h('div', { ref: trackRef, style: { height: '500vh', position: 'relative' } },
+        // Sticky viewport
+        h('div', {
+          className: 'tw-sticky tw-top-0 tw-h-screen tw-overflow-hidden',
+          style: { fontFamily: "'DM Sans', sans-serif" },
+        },
+          // 3-column grid: Headline | Phone | Description
+          h('div', {
+            className: 'tw-grid tw-h-full tw-items-center tw-gap-10',
+            style: {
+              gridTemplateColumns: '1fr minmax(240px, 320px) 1fr',
+              padding: '0 max(20px, 5vw)',
+            },
+          },
+            // Column 1: Headlines (stacked, absolutely positioned)
+            h('div', { className: 'tw-relative tw-h-full tw-flex tw-items-center' },
+              headlines.map((anim, i) =>
+                h(motion.div, {
+                  key: i,
+                  style: { y: anim.y, opacity: anim.opacity, position: 'absolute', width: '100%' },
+                },
+                  h('h2', {
+                    style: {
+                      fontSize: 'var(--headline-size-2)',
+                      letterSpacing: '-0.03em',
+                      fontWeight: 400,
+                      lineHeight: 1.1,
+                      whiteSpace: 'pre-line',
+                      color: SCENES[i].bg === '#000000' ? '#FFFFFF' : '#000000',
+                    },
+                  }, SCENES[i].headline)
+                )
+              )
+            ),
+
+            // Column 2: Phone frame
+            h('div', {
+              className: 'tw-flex tw-justify-center tw-items-center tw-h-full',
+            },
+              h('div', {
+                style: {
+                  width: '100%',
+                  maxWidth: '320px',
+                  aspectRatio: '337 / 724',
+                  borderRadius: '44px',
+                  overflow: 'hidden',
+                  position: 'relative',
+                  boxShadow: '0 25px 80px rgba(0,0,0,0.15)',
+                  border: '8px solid #1a1a1a',
+                  background: '#1a1a1a',
+                },
+              },
+                // Film strip container
+                h(motion.div, {
+                  style: {
+                    y: filmStripY,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '300%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  },
+                },
+                  SCENES.map((scene, i) =>
+                    h(PhoneScene, { key: i, color: scene.bg })
+                  )
+                )
+              )
+            ),
+
+            // Column 3: Descriptions (stacked, absolutely positioned)
+            h('div', { className: 'tw-relative tw-h-full tw-flex tw-items-center' },
+              descs.map((anim, i) =>
+                h(motion.div, {
+                  key: i,
+                  style: { y: anim.y, opacity: anim.opacity, position: 'absolute', width: '100%' },
+                },
+                  h('p', {
+                    style: {
+                      fontSize: 'var(--body-copy-size)',
+                      letterSpacing: '-0.03em',
+                      fontWeight: 400,
+                      lineHeight: 1.4,
+                      color: SCENES[i].bg === '#000000' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+                      maxWidth: '320px',
+                    },
+                  }, SCENES[i].desc)
+                )
+              )
+            )
+          )
+        )
+      );
+    }
+
+    // Mount the React island
+    const root = document.getElementById('scrollytelling-root');
+    if (root && window.innerWidth >= 1024) {
+      createRoot(root).render(h(ScrollytellingSection));
+    }
   </script>
 </body>
 </html>
